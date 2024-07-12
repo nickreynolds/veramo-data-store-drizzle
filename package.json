@@ -18,13 +18,16 @@
 	},
 	"devDependencies": {
 		"@types/node": "^20.14.10",
+		"@veramo/cli": "^6.0.0",
 		"cross-env": "^7.0.3",
 		"drizzle-kit": "^0.23.0"
 	},
 	"scripts": {
 		"test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-import-meta-resolve\" jest --runInBand",
 		"migrate": "tsx ./src/scripts/migrate.ts",
-		"saveGet": "tsx ./src/scripts/saveAndGetMessage.ts"
+		"saveGet": "tsx ./src/scripts/saveAndGetMessage.ts",
+		"extract-api": "pnpm veramo dev extract-api",
+		"build": "tsc"
 	},
 	"type": "module"
 }

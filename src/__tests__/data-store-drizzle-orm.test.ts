@@ -23,14 +23,15 @@ import { DIDStoreDrizzle } from "../identifier/did-store-drizzle";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from 'postgres'
 import * as schema from "../drizzle/schema";
+import { DataStoreDrizzleORM } from "../dataStoreDrizzleORM";
 import { DataStoreDrizzle } from "../dataStoreDrizzle";
 
 
 
-const did1 = "did:test:111";
-const did2 = "did:test:222";
-const did3 = "did:test:333";
-const did4 = "did:test:444";
+const did1 = "did:test:1112";
+const did2 = "did:test:2223";
+const did3 = "did:test:3334";
+const did4 = "did:test:4445";
 
 const vc1: VerifiableCredential = {
     "@context": [
@@ -51,7 +52,7 @@ const vc1: VerifiableCredential = {
         },
     },
     proof: {
-        jwt: "mockJWT",
+        jwt: "mockJWT12",
     },
 };
 
@@ -63,7 +64,7 @@ const vc2: VerifiableCredential = {
     type: ["VerifiableCredential", "PublicProfile"],
     issuer: { id: did1 },
     issuanceDate: new Date().toISOString(),
-    id: "vc1234vvv",
+    id: "vc1234vvvUUUUUUU",
     credentialSubject: {
         id: did3,
         name: "A555li444ce",
@@ -74,7 +75,55 @@ const vc2: VerifiableCredential = {
         },
     },
     proof: {
-        jwt: "mockJWT32",
+        jwt: "mockJWT32236666666",
+    },
+};
+
+
+const vc3: VerifiableCredential = {
+    "@context": [
+        "https://www.w3.org/2018/credentials/v1323",
+        "https://www.w3.org/2020/demo/4342323",
+    ],
+    type: ["VerifiableCredential", "PublicProfile"],
+    issuer: { id: did1 },
+    issuanceDate: new Date().toISOString(),
+    id: "vc1234vvvUUUUUUU777",
+    credentialSubject: {
+        id: did3,
+        name: "Ae",
+        profilePicture: "https://example.com/3.png",
+        address: {
+            street: "Some s3tr.",
+            house: 134,
+        },
+    },
+    proof: {
+        jwt: "mockJWT32236666666777",
+    },
+};
+
+
+const vc4: VerifiableCredential = {
+    "@context": [
+        "https://www.w3.org/2018/credentials/v1323",
+        "https://www.w3.org/2020/demo/4342323",
+    ],
+    type: ["VerifiableCredential", "Fakeout"],
+    issuer: { id: did2 },
+    issuanceDate: new Date().toISOString(),
+    id: "vc1234vvvUUUUUUU777",
+    credentialSubject: {
+        id: did1,
+        name: "Ae",
+        profilePicture: "https://example.com/3.png",
+        address: {
+            street: "Some s3tr.",
+            house: 134,
+        },
+    },
+    proof: {
+        jwt: "moc333kJWT32236666666777",
     },
 };
 
@@ -89,7 +138,7 @@ const vp1: VerifiablePresentation = {
     issuanceDate: new Date().toISOString(),
     verifiableCredential: [vc1],
     proof: {
-        jwt: "mockJWT",
+        jwt: "mockJWT12",
     },
 };
 
@@ -104,12 +153,12 @@ const vp2: VerifiablePresentation = {
     issuanceDate: new Date().toISOString(),
     verifiableCredential: [vc1],
     proof: {
-        jwt: "mockJWT",
+        jwt: "mockJWT1234",
     },
 };
 
 const m1: IMessage = {
-    id: "m1",
+    id: "m12",
     from: did1,
     to: did2,
     createdAt: "2020-06-16T11:06:51.680Z",
@@ -120,7 +169,7 @@ const m1: IMessage = {
 };
 
 const m2: IMessage = {
-    id: "m2",
+    id: "m23",
     from: did1,
     to: did1,
     createdAt: "2020-06-16T11:07:51.680Z",
@@ -129,7 +178,7 @@ const m2: IMessage = {
 };
 
 const m3: IMessage = {
-    id: "m3",
+    id: "m34",
     from: did3,
     to: did2,
     createdAt: "2020-06-16T11:08:51.680Z",
@@ -138,7 +187,7 @@ const m3: IMessage = {
 };
 
 const m4: IMessage = {
-    id: "m4",
+    id: "m45",
     from: did1,
     to: did2,
     createdAt: "2020-06-16T11:09:51.680Z",
@@ -157,18 +206,21 @@ describe("@veramo/data-store-drizzle queries", () => {
     function makeAgent(): TAgent<IDataStore> {
         // @ts-ignore
         return new Agent({
-            plugins: [new DataStoreDrizzle(db)],
+            plugins: [new DataStoreDrizzle(db), new DataStoreDrizzleORM(db)],
         });
     }
 
     beforeAll(async () => {
+        console.log("before all?")
         await db.delete(claims);
         await db.delete(credentials);
         await db.delete(messages);
         await db.delete(identifiers);
+        console.log("success deleting")
     });
 
     afterAll(async () => {
+        console.log("after all?")
         await db.delete(claims);
         await db.delete(credentials);
         await db.delete(messages);
@@ -176,14 +228,19 @@ describe("@veramo/data-store-drizzle queries", () => {
         await connection.end()
     });
 
-    test("can save and get message", async () => {
+    test("can save and get credential 1", async () => {
         const agent = makeAgent();
-        await agent.dataStoreSaveMessage({ message: m1 });
-        const foundMessage = await agent.dataStoreGetMessage({ id: "m1" });
-        expect(foundMessage).toEqual(m1);
+        await agent.dataStoreSaveVerifiableCredential({
+            verifiableCredential: vc1,
+        });
+        const foundCredential = await agent.dataStoreGetVerifiableCredential({
+            hash: computeEntryHash(vc1),
+        });
+
+        expect(foundCredential).toEqual(vc1);
     });
 
-    test("can save and get credential", async () => {
+    test("can save and get credential 2", async () => {
         const agent = makeAgent();
         await agent.dataStoreSaveVerifiableCredential({
             verifiableCredential: vc2,
@@ -194,4 +251,43 @@ describe("@veramo/data-store-drizzle queries", () => {
 
         expect(foundCredential).toEqual(vc2);
     });
+
+    test("can get verifiable credentials by claims", async () => {
+        const agent = makeAgent();
+        const foundCredentials = await agent.dataStoreORMGetVerifiableCredentialsByClaims({
+            where: (claims: typeof schema.claims, { eq }: any) => eq(claims.issuerDid, did1)
+        });
+        console.log("found credentials: ", foundCredentials)
+
+        expect(foundCredentials.length).toEqual(2);
+    })
+
+    test("can save and get credential 3", async () => {
+        const agent = makeAgent();
+        await agent.dataStoreSaveVerifiableCredential({
+            verifiableCredential: vc4,
+        });
+        const foundCredential = await agent.dataStoreGetVerifiableCredential({
+            hash: computeEntryHash(vc4),
+        });
+
+        expect(foundCredential).toEqual(vc4);
+    });
+
+    test("can get verifiable credentials by claims", async () => {
+        const agent = makeAgent();
+        const foundCredentials = await agent.dataStoreORMGetVerifiableCredentialsByClaims({
+            where: (claims: typeof schema.claims, { eq }: any) => eq(claims.issuerDid, did1)
+        });
+        console.log("found credentials: ", foundCredentials)
+
+        expect(foundCredentials.length).toEqual(2);
+
+        const foundCredentials2 = await agent.dataStoreORMGetVerifiableCredentialsByClaims({
+            where: (claims: typeof schema.claims, { eq }: any) => eq(claims.issuerDid, did2)
+        });
+        console.log("found credentials 2: ", foundCredentials2)
+
+        expect(foundCredentials2.length).toEqual(1);
+    })
 });

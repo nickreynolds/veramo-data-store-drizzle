@@ -1,38 +1,20 @@
 // noinspection ES6PreferShortImport
 import "dotenv/config";
-import * as fs from "fs";
 import { Agent } from "@veramo/core";
-import {
-    FindArgs,
-    IDataStore,
-    IDataStoreORM,
-    IMessage,
-    TAgent,
-    TCredentialColumns,
-    TMessageColumns,
-    TPresentationColumns,
-    VerifiableCredential,
-    VerifiablePresentation,
-} from "@veramo/core-types";
 import { computeEntryHash } from "@veramo/utils";
 // import { DataStoreDrizzle } from "../data-store-drizzle";
 // import { DataStoreORM } from "../data-store-orm";
 // import { db } from "../drizzle/db";
 import { claims, credentials, identifiers, messages } from "../drizzle/schema";
-import { DIDStoreDrizzle } from "../identifier/did-store-drizzle";
 import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from 'postgres'
+import postgres from 'postgres';
 import * as schema from "../drizzle/schema";
 import { DataStoreDrizzle } from "../dataStoreDrizzle";
-
-
-
 const did1 = "did:test:111";
 const did2 = "did:test:222";
 const did3 = "did:test:333";
 const did4 = "did:test:444";
-
-const vc1: VerifiableCredential = {
+const vc1 = {
     "@context": [
         "https://www.w3.org/2018/credentials/v1323",
         "https://www.w3.org/2020/demo/4342323",
@@ -54,8 +36,7 @@ const vc1: VerifiableCredential = {
         jwt: "mockJWT",
     },
 };
-
-const vc2: VerifiableCredential = {
+const vc2 = {
     "@context": [
         "https://www.w3.org/2018/credentials/v1323",
         "https://www.w3.org/2020/demo/4342323",
@@ -77,8 +58,7 @@ const vc2: VerifiableCredential = {
         jwt: "mockJWT32",
     },
 };
-
-const vp1: VerifiablePresentation = {
+const vp1 = {
     "@context": [
         "https://www.w3.org/2018/credentials/v1323",
         "https://www.w3.org/2020/demo/4342323",
@@ -92,8 +72,7 @@ const vp1: VerifiablePresentation = {
         jwt: "mockJWT",
     },
 };
-
-const vp2: VerifiablePresentation = {
+const vp2 = {
     "@context": [
         "https://www.w3.org/2018/credentials/v1323",
         "https://www.w3.org/2020/demo/4342323",
@@ -107,8 +86,7 @@ const vp2: VerifiablePresentation = {
         jwt: "mockJWT",
     },
 };
-
-const m1: IMessage = {
+const m1 = {
     id: "m1",
     from: did1,
     to: did2,
@@ -118,8 +96,7 @@ const m1: IMessage = {
     credentials: [vc1],
     presentations: [vp1],
 };
-
-const m2: IMessage = {
+const m2 = {
     id: "m2",
     from: did1,
     to: did1,
@@ -127,8 +104,7 @@ const m2: IMessage = {
     type: "mock",
     raw: "mock234",
 };
-
-const m3: IMessage = {
+const m3 = {
     id: "m3",
     from: did3,
     to: did2,
@@ -136,8 +112,7 @@ const m3: IMessage = {
     type: "mock",
     raw: "mock678",
 };
-
-const m4: IMessage = {
+const m4 = {
     id: "m4",
     from: did1,
     to: did2,
@@ -147,42 +122,38 @@ const m4: IMessage = {
     credentials: [vc1],
     presentations: [vp2],
 };
-
 describe("@veramo/data-store-drizzle queries", () => {
-    const connection = postgres(process.env.DATABASE_URL!)
-
+    const connection = postgres(process.env.DATABASE_URL);
     // client.connect();
-
     const db = drizzle(connection, { schema });
-    function makeAgent(): TAgent<IDataStore> {
+    function makeAgent() {
         // @ts-ignore
         return new Agent({
             plugins: [new DataStoreDrizzle(db)],
         });
     }
-
     beforeAll(async () => {
+        console.log("before all?");
         await db.delete(claims);
         await db.delete(credentials);
         await db.delete(messages);
         await db.delete(identifiers);
+        console.log("success deleting");
     });
-
     afterAll(async () => {
+        console.log("after all?");
         await db.delete(claims);
         await db.delete(credentials);
         await db.delete(messages);
         await db.delete(identifiers);
-        await connection.end()
+        await connection.end();
     });
-
     test("can save and get message", async () => {
         const agent = makeAgent();
         await agent.dataStoreSaveMessage({ message: m1 });
         const foundMessage = await agent.dataStoreGetMessage({ id: "m1" });
         expect(foundMessage).toEqual(m1);
     });
-
     test("can save and get credential", async () => {
         const agent = makeAgent();
         await agent.dataStoreSaveVerifiableCredential({
@@ -191,7 +162,7 @@ describe("@veramo/data-store-drizzle queries", () => {
         const foundCredential = await agent.dataStoreGetVerifiableCredential({
             hash: computeEntryHash(vc2),
         });
-
         expect(foundCredential).toEqual(vc2);
     });
 });
+//# sourceMappingURL=data-store-drizzle.test.js.map

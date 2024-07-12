@@ -1,3 +1,4 @@
+"use strict";
 // import {
 // 	AbstractPrivateKeyStore,
 // 	AbstractSecretBox,
@@ -13,9 +14,7 @@
 // import { key, privateKey } from "../drizzle/schema";
 // import { PrivateKey } from "../entities/private-key";
 // import { getConnectedDb } from "../utils";
-
 // // const debug = Debug('veramo:typeorm:key-store')
-
 // /**
 //  * An implementation of {@link @veramo/key-manager#AbstractPrivateKeyStore | AbstractPrivateKeyStore} that uses a
 //  * TypeORM database connection to store private key material.
@@ -35,7 +34,6 @@
 // 			console.warn("Please provide SecretBox to the KeyStore");
 // 		}
 // 	}
-
 // 	async getKey({ alias }: { alias: string }): Promise<ManagedPrivateKey> {
 // 		const key1 = await db.query.privateKey.findFirst({
 // 			// biome-ignore lint: ok
@@ -47,7 +45,6 @@
 // 		}
 // 		return key1 as ManagedPrivateKey;
 // 	}
-
 // 	async deleteKey({ alias }: { alias: string }) {
 // 		const key1 = await db.query.privateKey.findFirst({
 // 			// biome-ignore lint: ok
@@ -59,7 +56,6 @@
 // 		await db.delete(privateKey).where(eq(privateKey.alias, alias));
 // 		return true;
 // 	}
-
 // 	async importKey(args: ImportablePrivateKey): Promise<ManagedPrivateKey> {
 // 		const key = new PrivateKey();
 // 		key.alias = args.alias || uuid4();
@@ -87,7 +83,6 @@
 // 		await keyRepo.save(key);
 // 		return key;
 // 	}
-
 // 	async listKeys(): Promise<Array<ManagedPrivateKey>> {
 // 		// biome-ignore lint: ok
 // 		let keys = await (await getConnectedDb(this.dbConnection))
@@ -103,3 +98,4 @@
 // 		return keys;
 // 	}
 // }
+//# sourceMappingURL=private-key-store-drizzle.js.map
