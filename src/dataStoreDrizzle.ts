@@ -15,7 +15,7 @@ import {
 } from "@veramo/core-types";
 import { schema } from "@veramo/core-types";
 import { asArray, computeEntryHash } from "@veramo/utils";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import {
     createCredentialAndClaimsInsertObjects,
     createCredentialFromDB,
@@ -216,6 +216,7 @@ export class DataStoreDrizzle implements IAgentPlugin {
         // this.db.query.
         const m1 = await this.db.query.credentialsToMessages.findMany({
             where: (credentialsToMessages, { eq }) => eq(credentialsToMessages.messageId, args.id),
+            orderBy: (desc(drizzleSchema.credentialsToMessages.messageId)),
             with: {
                 credential: true,
             },
@@ -272,20 +273,12 @@ export class DataStoreDrizzle implements IAgentPlugin {
         const { cred, credClaims } = createCredentialAndClaimsInsertObjects(
             args.verifiableCredential,
         );
-        const id1 = await this.db.query.identifiers.findFirst({
-            // biome-ignore lint: ok
-            where: (identifier: any, { eq }: any) =>
-                eq(identifier.did, cred.issuerDid),
-        });
-        console.log("id1: ", id1);
-        if (!id1) {
-            console.log("insert identifier 1");
-            await this.db.insert(identifiers).values({
-                did: cred.issuerDid,
-                saveDate: new Date(),
-                updateDate: new Date(),
-            });
-        }
+
+        await this.db.insert(identifiers).values({
+            did: cred.issuerDid,
+            saveDate: new Date(),
+            updateDate: new Date(),
+        }).onConflictDoNothing();
 
         if (cred.subjectDid) {
             const id2 = await this.db.query.identifiers.findFirst({

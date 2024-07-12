@@ -144,7 +144,7 @@ const m4: IMessage = {
     createdAt: "2020-06-16T11:09:51.680Z",
     type: "mock",
     raw: "mockmoreaudienct",
-    credentials: [vc1],
+    credentials: [vc1, vc2],
     presentations: [vp2],
 };
 
@@ -194,4 +194,14 @@ describe("@veramo/data-store-drizzle queries", () => {
 
         expect(foundCredential).toEqual(vc2);
     });
+
+    test("can save and get message with 2 credentials", async () => {
+        const agent = makeAgent();
+        await agent.dataStoreSaveMessage({ message: m4 });
+        const foundMessage = await agent.dataStoreGetMessage({ id: "m4" });
+        expect(foundMessage.id).toEqual("m4");
+        expect(foundMessage.credentials?.length).toBe(2);
+    });
+
+
 });

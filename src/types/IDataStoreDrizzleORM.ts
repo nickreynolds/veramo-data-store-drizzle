@@ -2,148 +2,38 @@ import { VerifiableCredential, VerifiablePresentation } from '@veramo/core-types
 import { IIdentifier } from '@veramo/core-types'
 import { IAgentContext, IPluginMethodMap } from '@veramo/core-types'
 import { IMessage } from '@veramo/core-types'
+import { BinaryOperator, SQL } from 'drizzle-orm'
+import { PgTableWithColumns } from 'drizzle-orm/pg-core'
+
 
 /**
- * Represents the sort order of results from a {@link FindArgs} query.
+ * Represents an {@link IDataStoreDrizzleORM} Query.
  *
  * @beta This API may change without a BREAKING CHANGE notice.
  */
-export interface Order<TColumns> {
-    column: TColumns
-    direction: 'ASC' | 'DESC'
-}
-
-/**
- * Represents a WHERE predicate for a {@link FindArgs} query.
- * In situations where multiple WHERE predicates are present, they are combined with AND.
- *
- * @beta This API may change without a BREAKING CHANGE notice.
- */
-export interface Where<TColumns> {
-    column: TColumns
-    value?: string[]
-    not?: boolean
-    op?:
-    | 'LessThan'
-    | 'LessThanOrEqual'
-    | 'MoreThan'
-    | 'MoreThanOrEqual'
-    | 'Equal'
-    | 'Like'
-    | 'Between'
-    | 'In'
-    | 'Any'
-    | 'IsNull'
-}
-
-/**
- * Represents an {@link IDataStoreORM} Query.
- *
- * @beta This API may change without a BREAKING CHANGE notice.
- */
-export interface FindArgs<TColumns> {
+export interface FindArgs {
     /**
      * Imposes constraints on the values of the given columns.
      * WHERE clauses are combined using AND.
      */
-    where?: any
+    where?: SQL | SQL<unknown> | BinaryOperator
 
     /**
      * Sorts the results according to the given array of column priorities.
      */
-    order?: Order<TColumns>[]
+    orderBy?: SQL
 
     /**
-     * Ignores the first number of entries in a {@link IDataStoreORM} query result.
+     * Ignores the first number of entries in a {@link IDataStoreDrizzleORM} query result.
      */
     skip?: number
 
     /**
-     * Returns at most this number of results from a {@link IDataStoreORM} query.
+     * Returns at most this number of results from a {@link IDataStoreDrizzleORM} query.
      */
-    take?: number
+    limit?: number
 }
 
-/**
- * The columns that can be queried for an {@link IIdentifier}
- *
- * @deprecated This type will be removed in future versions of this plugin interface.
- * @beta This API may change without a BREAKING CHANGE notice.
- */
-export type TIdentifiersColumns = 'did' | 'alias' | 'provider'
-
-/**
- * The columns that can be queried for an {@link IMessage}
- *
- * See {@link IDataStoreORM.dataStoreORMGetMessagesCount}
- * @beta This API may change without a BREAKING CHANGE notice.
- */
-export type TMessageColumns =
-    | 'from'
-    | 'to'
-    | 'id'
-    | 'createdAt'
-    | 'expiresAt'
-    | 'threadId'
-    | 'type'
-    | 'raw'
-    | 'replyTo'
-    | 'replyUrl'
-
-/**
- * The columns that can be searched for a {@link VerifiableCredential}
- *
- * See {@link IDataStoreORM.dataStoreORMGetVerifiableCredentials}
- * See {@link IDataStoreORM.dataStoreORMGetVerifiableCredentialsCount}
- *
- * @beta This API may change without a BREAKING CHANGE notice.
- */
-export type TCredentialColumns =
-    | 'context'
-    | 'type'
-    | 'id'
-    | 'issuer'
-    | 'subject'
-    | 'expirationDate'
-    | 'issuanceDate'
-    | 'hash'
-
-/**
- * The columns that can be searched for the claims of a {@link VerifiableCredential}
- *
- * See {@link IDataStoreORM.dataStoreORMGetVerifiableCredentialsByClaims}
- * See {@link IDataStoreORM.dataStoreORMGetVerifiableCredentialsByClaimsCount}
- *
- * @beta This API may change without a BREAKING CHANGE notice.
- */
-export type TClaimsColumns =
-    | 'context'
-    | 'credentialType'
-    | 'type'
-    | 'value'
-    | 'isObj'
-    | 'id'
-    | 'issuer'
-    | 'subject'
-    | 'expirationDate'
-    | 'issuanceDate'
-
-/**
- * The columns that can be searched for a {@link VerifiablePresentation}
- *
- * See {@link IDataStoreORM.dataStoreORMGetVerifiablePresentations}
- * See {@link IDataStoreORM.dataStoreORMGetVerifiablePresentationsCount}
- *
- * @beta This API may change without a BREAKING CHANGE notice.
- */
-export type TPresentationColumns =
-    | 'context'
-    | 'type'
-    | 'id'
-    | 'holder'
-    | 'verifier'
-    | 'expirationDate'
-    | 'issuanceDate'
 
 /**
  * This context can be used for Veramo Agents that are created behind an authorization mechanism, that attaches a DID
@@ -162,8 +52,8 @@ export interface AuthorizedDIDContext extends IAgentContext<{}> {
 /**
  * Represents the result of a Query for {@link VerifiableCredential}s
  *
- * See {@link IDataStoreORM.dataStoreORMGetVerifiableCredentials}
- * See {@link IDataStoreORM.dataStoreORMGetVerifiableCredentialsByClaims}
+ * See {@link IDataStoreDrizzleORM.dataStoreORMDrizzleGetVerifiableCredentials}
+ * See {@link IDataStoreDrizzleORM.dataStoreORMDrizzleGetVerifiableCredentialsByClaims}
  *
  * @beta This API may change without a BREAKING CHANGE notice.
  */
@@ -173,9 +63,23 @@ export interface UniqueVerifiableCredential {
 }
 
 /**
+ * Represents the result of a Query for a witnessed {@link VerifiableCredential}s
+ *
+ * See {@link IDataStoreDrizzleORM.dataStoreORMDrizzleGetWitnessedVerifiableCredentials}
+ * See {@link IDataStoreDrizzleORM.dataStoreORMDrizzleGetVerifiableCredentialsByClaims}
+ *
+ * @beta This API may change without a BREAKING CHANGE notice.
+ */
+export interface UniqueWitnessedVerifiableCredential
+    extends UniqueVerifiableCredential {
+    witnessIndex?: string;
+}
+
+
+/**
  * Represents the result of a Query for {@link VerifiablePresentation}s
  *
- * See {@link IDataStoreORM.dataStoreORMGetVerifiablePresentations}
+ * See {@link IDataStoreDrizzleORM.dataStoreORMDrizzleGetVerifiablePresentations}
  *
  * @beta This API may change without a BREAKING CHANGE notice.
  */
@@ -189,43 +93,43 @@ export interface UniqueVerifiablePresentation {
  *
  * @beta This API may change without a BREAKING CHANGE notice.
  */
-export type FindIdentifiersArgs = FindArgs<TIdentifiersColumns>
+export type FindIdentifiersArgs = FindArgs
 
 /**
  * The filter that can be used to find {@link IMessage}s in the data store.
- * See {@link IDataStoreORM.dataStoreORMGetMessages}
+ * See {@link IDataStoreORM.dataStoreORMDrizzleGetMessages}
  *
  * @beta This API may change without a BREAKING CHANGE notice.
  */
-export type FindMessagesArgs = FindArgs<TMessageColumns>
+export type FindMessagesArgs = FindArgs
 
 /**
  * The filter that can be used to find {@link VerifiableCredential}s in the data store, based on the types and values
  * of their claims.
  *
- * See {@link IDataStoreORM.dataStoreORMGetVerifiableCredentialsByClaims}
+ * See {@link IDataStoreORM.dataStoreORMDrizzleGetVerifiableCredentialsByClaims}
  * @beta This API may change without a BREAKING CHANGE notice.
  */
-export type FindClaimsArgs = FindArgs<TClaimsColumns>
+export type FindClaimsArgs = FindArgs
 
 /**
  * The filter that can be used to find {@link VerifiableCredential}s in the data store.
- * See {@link IDataStoreORM.dataStoreORMGetVerifiableCredentials}
+ * See {@link IDataStoreORM.dataStoreORMDrizzleGetVerifiableCredentials}
  *
  * @beta This API may change without a BREAKING CHANGE notice.
  */
-export type FindCredentialsArgs = FindArgs<TCredentialColumns>
+export type FindCredentialsArgs = FindArgs
 
 /**
  * The filter that can be used to find {@link VerifiablePresentation}s in the data store.
- * See {@link IDataStoreORM.dataStoreORMGetVerifiablePresentations}
+ * See {@link IDataStoreORM.dataStoreORMDrizzleGetVerifiablePresentations}
  *
  * @beta This API may change without a BREAKING CHANGE notice.
  */
-export type FindPresentationsArgs = FindArgs<TPresentationColumns>
+export type FindPresentationsArgs = FindArgs
 
 /**
- * The result of a {@link IDataStoreORM.dataStoreORMGetIdentifiers} query.
+ * The result of a {@link IDataStoreORM.dataStoreORMDrizzleGetIdentifiers} query.
  *
  * @beta This API may change without a BREAKING CHANGE notice.
  */
@@ -263,7 +167,7 @@ export interface IDataStoreDrizzleORM extends IPluginMethodMap {
      * @deprecated This will be removed in future versions of this plugin interface.
      * @beta This API may change without a BREAKING CHANGE notice.
      */
-    dataStoreORMGetIdentifiers(
+    dataStoreORMDrizzleGetIdentifiers(
         args: FindIdentifiersArgs,
         context: AuthorizedDIDContext,
     ): Promise<Array<PartialIdentifier>>
@@ -284,7 +188,7 @@ export interface IDataStoreDrizzleORM extends IPluginMethodMap {
      * @deprecated This will be removed in future versions of this plugin interface.
      * @beta This API may change without a BREAKING CHANGE notice.
      */
-    dataStoreORMGetIdentifiersCount(args: FindIdentifiersArgs, context: AuthorizedDIDContext): Promise<number>
+    dataStoreORMDrizzleGetIdentifiersCount(args: FindIdentifiersArgs, context: AuthorizedDIDContext): Promise<number>
 
     // /**
     //  * Returns a list of {@link IMessage}s that match the given filter.
@@ -296,7 +200,7 @@ export interface IDataStoreDrizzleORM extends IPluginMethodMap {
     //  *
     //  * @beta This API may change without a BREAKING CHANGE notice.
     //  */
-    // dataStoreORMGetMessages(args: FindMessagesArgs, context: AuthorizedDIDContext): Promise<Array<IMessage>>
+    // dataStoreORMDrizzleGetMessages(args: FindMessagesArgs, context: AuthorizedDIDContext): Promise<Array<IMessage>>
 
     // /**
     //  * Returns a count of {@link IMessage}s that match the given filter.
@@ -308,7 +212,7 @@ export interface IDataStoreDrizzleORM extends IPluginMethodMap {
     //  *
     //  * @beta This API may change without a BREAKING CHANGE notice.
     //  */
-    // dataStoreORMGetMessagesCount(args: FindMessagesArgs, context: AuthorizedDIDContext): Promise<number>
+    // dataStoreORMDrizzleGetMessagesCount(args: FindMessagesArgs, context: AuthorizedDIDContext): Promise<number>
 
     /**
      * Returns a list of {@link UniqueVerifiableCredential}s that match the given filter based on the claims they
@@ -323,7 +227,7 @@ export interface IDataStoreDrizzleORM extends IPluginMethodMap {
      *
      * @beta This API may change without a BREAKING CHANGE notice.
      */
-    dataStoreORMGetVerifiableCredentialsByClaims(
+    dataStoreORMDrizzleGetVerifiableCredentialsByClaims(
         args: FindClaimsArgs,
         context: AuthorizedDIDContext,
     ): Promise<Array<UniqueVerifiableCredential>>
@@ -341,46 +245,82 @@ export interface IDataStoreDrizzleORM extends IPluginMethodMap {
      *
      * @beta This API may change without a BREAKING CHANGE notice.
      */
-    dataStoreORMGetVerifiableCredentialsByClaimsCount(
+    dataStoreORMDrizzleGetVerifiableCredentialsByClaimsCount(
         args: FindClaimsArgs,
         context: AuthorizedDIDContext,
     ): Promise<number>
 
-    // /**
-    //  * Returns a list of {@link UniqueVerifiableCredential}s that match the given filter based on the top level
-    //  * properties of a credential.
-    //  *
-    //  * These are VerifiableCredentials that were stored using
-    //  * {@link IDataStore.dataStoreSaveVerifiableCredential | dataStoreSaveVerifiableCredential}.
-    //  *
-    //  * @param args - The filter to apply when querying
-    //  * @param context - Can be used to signal that only a particular DID is authorized to perform this operation. This
-    //  *   will cause the result to only contain data that this DID should be able to access.
-    //  *
-    //  * @beta This API may change without a BREAKING CHANGE notice.
-    //  */
-    // dataStoreORMGetVerifiableCredentials(
-    //     args: FindCredentialsArgs,
-    //     context: AuthorizedDIDContext,
-    // ): Promise<Array<UniqueVerifiableCredential>>
+    /**
+ * Returns a list of {@link UniqueVerifiableCredential}s that match the given filter based on the claims they
+ * contain.
+ *
+ * These are VerifiableCredentials that were stored using
+ * {@link IDataStore.dataStoreSaveVerifiableCredential | dataStoreSaveVerifiableCredential}.
+ *
+ * @param args - The filter to apply when querying
+ * @param context - Can be used to signal that only a particular DID is authorized to perform this operation. This
+ *   will cause the result to only contain data that this DID should be able to access.
+ *
+ * @beta This API may change without a BREAKING CHANGE notice.
+ */
+    dataStoreORMDrizzleGetWitnessedVerifiableCredentialsByClaims(
+        args: FindClaimsArgs,
+        context: AuthorizedDIDContext,
+    ): Promise<Array<UniqueVerifiableCredential>>
 
-    // /**
-    //  * Returns a count of {@link UniqueVerifiableCredential}s that match the given filter based on the top level
-    //  * properties of a credential.
-    //  *
-    //  * These are VerifiableCredentials that were stored using
-    //  * {@link IDataStore.dataStoreSaveVerifiableCredential | dataStoreSaveVerifiableCredential}.
-    //  *
-    //  * @param args - The filter to apply when querying
-    //  * @param context - Can be used to signal that only a particular DID is authorized to perform this operation. This
-    //  *   will cause the result to only contain data that this DID should be able to access.
-    //  *
-    //  * @beta This API may change without a BREAKING CHANGE notice.
-    //  */
-    // dataStoreORMGetVerifiableCredentialsCount(
-    //     args: FindCredentialsArgs,
-    //     context: AuthorizedDIDContext,
-    // ): Promise<number>
+    /**
+     * Returns a count of {@link UniqueVerifiableCredential}s that match the given filter based on the claims they
+     * contain.
+     *
+     * These are VerifiableCredentials that were stored using
+     * {@link IDataStore.dataStoreSaveVerifiableCredential | dataStoreSaveVerifiableCredential}.
+     *
+     * @param args - The filter to apply when querying
+     * @param context - Can be used to signal that only a particular DID is authorized to perform this operation. This
+     *   will cause the result to only contain data that this DID should be able to access.
+     *
+     * @beta This API may change without a BREAKING CHANGE notice.
+     */
+    dataStoreORMDrizzleGetVerifiableCredentialsByClaimsCount(
+        args: FindClaimsArgs,
+        context: AuthorizedDIDContext,
+    ): Promise<number>
+
+    /**
+     * Returns a list of {@link UniqueVerifiableCredential}s that match the given filter based on the top level
+     * properties of a credential.
+     *
+     * These are VerifiableCredentials that were stored using
+     * {@link IDataStore.dataStoreSaveVerifiableCredential | dataStoreSaveVerifiableCredential}.
+     *
+     * @param args - The filter to apply when querying
+     * @param context - Can be used to signal that only a particular DID is authorized to perform this operation. This
+     *   will cause the result to only contain data that this DID should be able to access.
+     *
+     * @beta This API may change without a BREAKING CHANGE notice.
+     */
+    dataStoreORMDrizzleGetVerifiableCredentials(
+        args: FindCredentialsArgs,
+        context: AuthorizedDIDContext,
+    ): Promise<Array<UniqueVerifiableCredential>>
+
+    /**
+     * Returns a count of {@link UniqueVerifiableCredential}s that match the given filter based on the top level
+     * properties of a credential.
+     *
+     * These are VerifiableCredentials that were stored using
+     * {@link IDataStore.dataStoreSaveVerifiableCredential | dataStoreSaveVerifiableCredential}.
+     *
+     * @param args - The filter to apply when querying
+     * @param context - Can be used to signal that only a particular DID is authorized to perform this operation. This
+     *   will cause the result to only contain data that this DID should be able to access.
+     *
+     * @beta This API may change without a BREAKING CHANGE notice.
+     */
+    dataStoreORMDrizzleGetVerifiableCredentialsCount(
+        args: FindCredentialsArgs,
+        context: AuthorizedDIDContext,
+    ): Promise<number>
 
     // /**
     //  * Returns a list of {@link UniqueVerifiablePresentation}s that match the given filter based on the top level
@@ -395,7 +335,7 @@ export interface IDataStoreDrizzleORM extends IPluginMethodMap {
     //  *
     //  * @beta This API may change without a BREAKING CHANGE notice.
     //  */
-    // dataStoreORMGetVerifiablePresentations(
+    // dataStoreORMDrizzleGetVerifiablePresentations(
     //     args: FindPresentationsArgs,
     //     context: AuthorizedDIDContext,
     // ): Promise<Array<UniqueVerifiablePresentation>>
@@ -413,7 +353,7 @@ export interface IDataStoreDrizzleORM extends IPluginMethodMap {
     //  *
     //  * @beta This API may change without a BREAKING CHANGE notice.
     //  */
-    // dataStoreORMGetVerifiablePresentationsCount(
+    // dataStoreORMDrizzleGetVerifiablePresentationsCount(
     //     args: FindPresentationsArgs,
     //     context: AuthorizedDIDContext,
     // ): Promise<number>

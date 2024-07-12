@@ -19,7 +19,7 @@ import { schema } from "@veramo/core-types";
 import { OrPromise } from "@veramo/utils";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as drizzleSchema from "./drizzle/schema";
-import { FindArgs, IDataStoreDrizzleORM } from "./types/IDataStoreDrizzleORM";
+import { FindArgs, IDataStoreDrizzleORM, UniqueWitnessedVerifiableCredential } from "./types/IDataStoreDrizzleORM";
 import { count, eq } from "drizzle-orm";
 
 
@@ -41,38 +41,13 @@ import { count, eq } from "drizzle-orm";
 
 export type TWitnessedClaimsColumns = TClaimsColumns | "witnessIndex";
 export type TWitnessedCredentialColumns = TCredentialColumns | "witnessIndex";
-export interface UniqueWitnessedVerifiableCredential
-    extends UniqueVerifiableCredential {
-    witnessIndex?: string;
-}
+
 
 export interface IWitnessDataStoreDrizzleORM {
-    dataStoreORMGetVerifiableCredentialsByClaimsWitnessed: (
-        args: FindArgs<TWitnessedClaimsColumns>,
+    dataStoreORMDrizzleGetVerifiableCredentialsByClaimsWitnessed: (
+        args: FindArgs,
         context: AuthorizedDIDContext,
     ) => Promise<Array<UniqueVerifiableCredential>>;
-
-    dataStoreORMGetWitnessedVerifiableCredentialsPaginated: (
-        args: {
-            findArgs: FindArgs<TWitnessedCredentialColumns>;
-            cursor: string | undefined;
-        },
-        context: AuthorizedDIDContext,
-    ) => Promise<{
-        credentials: Array<UniqueWitnessedVerifiableCredential>;
-        nextCursor: string | null;
-    }>;
-
-    dataStoreORMGetWitnessedVerifiableCredentialsByClaimsPaginated: (
-        args: {
-            findArgs: FindArgs<TWitnessedClaimsColumns>;
-            cursor: string | undefined;
-        },
-        context?: AuthorizedDIDContext,
-    ) => Promise<{
-        credentials: Array<UniqueWitnessedVerifiableCredential>;
-        nextCursor: string | null;
-    }>;
 }
 
 export class DataStoreDrizzleORM implements IAgentPlugin {
@@ -84,32 +59,34 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
         this.db = db;
 
         this.methods = {
-            dataStoreORMGetIdentifiers: this.dataStoreORMGetIdentifiers.bind(this),
-            dataStoreORMGetIdentifiersCount:
-                this.dataStoreORMGetIdentifiersCount.bind(this),
-            // dataStoreORMGetMessages: this.dataStoreORMGetMessages.bind(this),
-            // dataStoreORMGetMessagesCount:
-            //     this.dataStoreORMGetMessagesCount.bind(this),
-            dataStoreORMGetVerifiableCredentialsByClaims:
-                this.dataStoreORMGetVerifiableCredentialsByClaims.bind(this),
-            dataStoreORMGetVerifiableCredentialsByClaimsCount:
-                this.dataStoreORMGetVerifiableCredentialsByClaimsCount.bind(this),
-            // dataStoreORMGetVerifiableCredentials:
-            //     this.dataStoreORMGetVerifiableCredentials.bind(this),
-            // dataStoreORMGetVerifiableCredentialsCount:
-            //     this.dataStoreORMGetVerifiableCredentialsCount.bind(this),
-            // dataStoreORMGetVerifiablePresentations:
-            //     this.dataStoreORMGetVerifiablePresentations.bind(this),
-            // dataStoreORMGetVerifiablePresentationsCount:
-            //     this.dataStoreORMGetVerifiablePresentationsCount.bind(this),
-            // dataStoreORMGetVerifiableCredentialsByClaimsWitnessed:
-            //     this.dataStoreORMGetVerifiableCredentialsByClaimsWitnessed.bind(this),
-            // dataStoreORMGetWitnessedVerifiableCredentialsByClaimsPaginated:
-            //     this.dataStoreORMGetWitnessedVerifiableCredentialsByClaimsPaginated.bind(
+            dataStoreORMDrizzleGetIdentifiers: this.dataStoreORMDrizzleGetIdentifiers.bind(this),
+            dataStoreORMDrizzleGetIdentifiersCount:
+                this.dataStoreORMDrizzleGetIdentifiersCount.bind(this),
+            // dataStoreORMDrizzleGetMessages: this.dataStoreORMDrizzleGetMessages.bind(this),
+            // dataStoreORMDrizzleGetMessagesCount:
+            //     this.dataStoreORMDrizzleGetMessagesCount.bind(this),
+            dataStoreORMDrizzleGetVerifiableCredentialsByClaims:
+                this.dataStoreORMDrizzleGetVerifiableCredentialsByClaims.bind(this),
+            dataStoreORMDrizzleGetWitnessedVerifiableCredentialsByClaims:
+                this.dataStoreORMDrizzleGetWitnessedVerifiableCredentialsByClaims.bind(this),
+            dataStoreORMDrizzleGetVerifiableCredentialsByClaimsCount:
+                this.dataStoreORMDrizzleGetVerifiableCredentialsByClaimsCount.bind(this),
+            dataStoreORMDrizzleGetVerifiableCredentials:
+                this.dataStoreORMDrizzleGetVerifiableCredentials.bind(this),
+            dataStoreORMDrizzleGetVerifiableCredentialsCount:
+                this.dataStoreORMDrizzleGetVerifiableCredentialsCount.bind(this),
+            // dataStoreORMDrizzleGetVerifiablePresentations:
+            //     this.dataStoreORMDrizzleGetVerifiablePresentations.bind(this),
+            // dataStoreORMDrizzleGetVerifiablePresentationsCount:
+            //     this.dataStoreORMDrizzleGetVerifiablePresentationsCount.bind(this),
+            // dataStoreORMDrizzleGetVerifiableCredentialsByClaimsWitnessed:
+            //     this.dataStoreORMDrizzleGetVerifiableCredentialsByClaimsWitnessed.bind(this),
+            // dataStoreORMDrizzleGetWitnessedVerifiableCredentialsByClaimsPaginated:
+            //     this.dataStoreORMDrizzleGetWitnessedVerifiableCredentialsByClaimsPaginated.bind(
             //         this,
             //     ),
-            // dataStoreORMGetWitnessedVerifiableCredentialsPaginated:
-            //     this.dataStoreORMGetWitnessedVerifiableCredentialsPaginated.bind(this),
+            // dataStoreORMDrizzleGetWitnessedVerifiableCredentialsPaginated:
+            //     this.dataStoreORMDrizzleGetWitnessedVerifiableCredentialsPaginated.bind(this),
         };
     }
 
@@ -130,13 +107,14 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
     //     return qb;
     // }
 
-    async dataStoreORMGetIdentifiers(
-        args: FindArgs<TIdentifiersColumns>,
+    async dataStoreORMDrizzleGetIdentifiers(
+        args: FindArgs,
         context: AuthorizedDIDContext,
     ): Promise<PartialIdentifier[]> {
         // const identifiers = await (await this.identifiersQuery(args)).getMany();
 
         const identifiers = await this.db.query.identifiers.findMany({
+            where: args.where,
             with: {
                 keys: true,
                 services: true
@@ -161,46 +139,18 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
         });
     }
 
-    async dataStoreORMGetIdentifiersCount(
-        args: FindArgs<TIdentifiersColumns>,
+    async dataStoreORMDrizzleGetIdentifiersCount(
+        args: FindArgs,
         context: AuthorizedDIDContext,
     ): Promise<number> {
         // return await (await this.identifiersQuery(args, context)).getCount();
-        const result = await this.db.select({ count: count() }).from(drizzleSchema.identifiers)
+        const result = await this.db.select({ count: count() }).from(drizzleSchema.identifiers)//.where(eq())
         return result[0].count
     }
 
     // Messages
 
-    // private async messagesQuery(
-    //     args: FindArgs<TMessageColumns>,
-    //     context: AuthorizedDIDContext,
-    // ): Promise<SelectQueryBuilder<Message>> {
-    //     const where = createWhereObject(args);
-    //     let qb = (await getConnectedDb(this.dbConnection))
-    //         .getRepository(Message)
-    //         .createQueryBuilder("message")
-    //         .leftJoinAndSelect("message.from", "from")
-    //         .leftJoinAndSelect("message.to", "to")
-    //         .leftJoinAndSelect("message.credentials", "credentials")
-    //         .leftJoinAndSelect("message.presentations", "presentations")
-    //         .where(where);
-    //     qb = decorateQB(qb, "message", args);
-    //     if (context.authorizedDID) {
-    //         qb = qb.andWhere(
-    //             new Brackets((qb) => {
-    //                 qb.where("message.to = :ident", {
-    //                     ident: context.authorizedDID,
-    //                 }).orWhere("message.from = :ident", {
-    //                     ident: context.authorizedDID,
-    //                 });
-    //             }),
-    //         );
-    //     }
-    //     return qb;
-    // }
-
-    // async dataStoreORMGetMessages(
+    // async dataStoreORMDrizzleGetMessages(
     //     args: FindArgs<TMessageColumns>,
     //     context: AuthorizedDIDContext,
     // ): Promise<IMessage[]> {
@@ -208,50 +158,22 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
     //     return messages.map(createMessage);
     // }
 
-    // async dataStoreORMGetMessagesCount(
+    // async dataStoreORMDrizzleGetMessagesCount(
     //     args: FindArgs<TMessageColumns>,
     //     context: AuthorizedDIDContext,
     // ): Promise<number> {
     //     return (await this.messagesQuery(args, context)).getCount();
     // }
 
-    // // Claims
-
-    // private async claimsQuery(
-    //     args: FindArgs<TWitnessedClaimsColumns>,
-    //     context?: AuthorizedDIDContext,
-    // ): Promise<SelectQueryBuilder<Claim>> {
-    //     const where = createWhereObject(args);
-    //     let qb = (await getConnectedDb(this.dbConnection))
-    //         .getRepository(Claim)
-    //         .createQueryBuilder("claim")
-    //         .leftJoinAndSelect("claim.issuer", "issuer")
-    //         .leftJoinAndSelect("claim.subject", "subject")
-    //         .where(where);
-    //     qb = decorateQB(qb, "claim", args);
-    //     qb = qb.leftJoinAndSelect("claim.credential", "credential");
-    //     if (context?.authorizedDID) {
-    //         qb = qb.andWhere(
-    //             new Brackets((qb) => {
-    //                 qb.where("claim.subject = :ident", {
-    //                     ident: context.authorizedDID,
-    //                 }).orWhere("claim.issuer = :ident", {
-    //                     ident: context.authorizedDID,
-    //                 });
-    //             }),
-    //         );
-    //     }
-    //     return qb;
-    // }
-
-    async dataStoreORMGetVerifiableCredentialsByClaims(
-        args: FindArgs<TClaimsColumns>,
+    async dataStoreORMDrizzleGetVerifiableCredentialsByClaims(
+        args: FindArgs,
         context: AuthorizedDIDContext,
     ): Promise<Array<UniqueVerifiableCredential>> {
 
         // const where = createWhereObject(args);
         const claims = await this.db.query.claims.findMany({
             where: args.where,
+            orderBy: args.orderBy,
             with: {
                 credential: true
             }
@@ -277,32 +199,40 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
             );
     }
 
-    // async dataStoreORMGetVerifiableCredentialsByClaimsWitnessed(
-    //     args: FindArgs<TWitnessedClaimsColumns>,
-    //     context: AuthorizedDIDContext,
-    // ): Promise<Array<UniqueWitnessedVerifiableCredential>> {
-    //     const claims = await (await this.claimsQuery(args, context)).getMany();
-    //     return claims
-    //         .map((claim) => ({
-    //             hash: claim.credential.hash,
-    //             verifiableCredential: claim.credential.raw,
-    //             witnessIndex: claim.witnessIndex,
-    //         }))
-    //         .reduce(
-    //             (
-    //                 acc: UniqueWitnessedVerifiableCredential[],
-    //                 current: UniqueWitnessedVerifiableCredential,
-    //             ) => {
-    //                 if (!acc.some((item) => item.hash === current.hash)) {
-    //                     acc.push(current);
-    //                 }
-    //                 return acc;
-    //             },
-    //             [],
-    //         );
-    // }
+    async dataStoreORMDrizzleGetWitnessedVerifiableCredentialsByClaims(
+        args: FindArgs,
+        context: AuthorizedDIDContext,
+    ): Promise<Array<UniqueWitnessedVerifiableCredential>> {
+        const claims = await this.db.query.claims.findMany({
+            where: args.where,
+            orderBy: args.orderBy,
+            with: {
+                credential: true
+            },
+            limit: args.limit,
+        })
+        return claims.map((c) => {
+            return {
+                hash: c.credential.hash,
+                verifiableCredential: JSON.parse(c.credential.raw),
+                witnessIndex: c.credential.witnessIndex
+            }
+        })
+            .reduce(
+                (
+                    acc: UniqueVerifiableCredential[],
+                    current: UniqueVerifiableCredential,
+                ) => {
+                    if (!acc.some((item) => item.hash === current.hash)) {
+                        acc.push(current);
+                    }
+                    return acc;
+                },
+                [],
+            );
+    }
 
-    // async dataStoreORMGetWitnessedVerifiableCredentialsPaginated(
+    // async dataStoreORMDrizzleGetWitnessedVerifiableCredentialsPaginated(
     //     args: {
     //         findArgs: FindArgs<TWitnessedCredentialColumns>;
     //         cursor: string | undefined;
@@ -335,7 +265,7 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
     //     };
     // }
 
-    // async dataStoreORMGetWitnessedVerifiableCredentialsByClaimsPaginated(
+    // async dataStoreORMDrizzleGetWitnessedVerifiableCredentialsByClaimsPaginated(
     //     args: {
     //         findArgs: FindArgs<TWitnessedClaimsColumns>;
     //         cursor: string | undefined;
@@ -381,8 +311,8 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
     //     };
     // }
 
-    async dataStoreORMGetVerifiableCredentialsByClaimsCount(
-        args: FindArgs<TClaimsColumns>,
+    async dataStoreORMDrizzleGetVerifiableCredentialsByClaimsCount(
+        args: FindArgs,
         context: AuthorizedDIDContext,
     ): Promise<number> {
         // return (await this.claimsQuery(args, context)).getCount();
@@ -392,51 +322,31 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
 
     // Credentials
 
-    //     private async credentialsQuery(
-    //         args: FindArgs<TCredentialColumns | "witnessIndex">,
-    //         context: AuthorizedDIDContext,
-    //     ): Promise<SelectQueryBuilder<Credential>> {
-    //         const where = createWhereObject(args);
-    //         let qb = (await getConnectedDb(this.dbConnection))
-    //             .getRepository(Credential)
-    //             .createQueryBuilder("credential")
-    //             .leftJoinAndSelect("credential.issuer", "issuer")
-    //             .leftJoinAndSelect("credential.subject", "subject")
-    //             .where(where);
-    //         qb = decorateQB(qb, "credential", args);
-    //         if (context.authorizedDID) {
-    //             qb = qb.andWhere(
-    //                 new Brackets((qb) => {
-    //                     qb.where("credential.subject = :ident", {
-    //                         ident: context.authorizedDID,
-    //                     }).orWhere("credential.issuer = :ident", {
-    //                         ident: context.authorizedDID,
-    //                     });
-    //                 }),
-    //             );
-    //         }
-    //         return qb;
-    //     }
+    async dataStoreORMDrizzleGetVerifiableCredentials(
+        args: FindArgs,
+        context: AuthorizedDIDContext,
+    ): Promise<Array<UniqueVerifiableCredential>> {
+        const credentials =
+            await this.db.query.credentials.findMany({
+                limit: args.limit,
+                where: args.where,
+                orderBy: args.orderBy
+            })
+        return credentials.map((vc) => ({
+            hash: vc.hash,
+            verifiableCredential: JSON.parse(vc.raw),
+        }));
+    }
 
-    //     async dataStoreORMGetVerifiableCredentials(
-    //         args: FindArgs<TCredentialColumns>,
-    //         context: AuthorizedDIDContext,
-    //     ): Promise<Array<UniqueVerifiableCredential>> {
-    //         const credentials = await (
-    //             await this.credentialsQuery(args, context)
-    //         ).getMany();
-    //         return credentials.map((vc) => ({
-    //             hash: vc.hash,
-    //             verifiableCredential: vc.raw,
-    //         }));
-    //     }
+    async dataStoreORMDrizzleGetVerifiableCredentialsCount(
+        args: FindArgs,
+        context: AuthorizedDIDContext,
+    ): Promise<number> {
+        // return (await this.credentialsQuery(args, context)).getCount();
 
-    //     async dataStoreORMGetVerifiableCredentialsCount(
-    //         args: FindArgs<TCredentialColumns>,
-    //         context: AuthorizedDIDContext,
-    //     ): Promise<number> {
-    //         return (await this.credentialsQuery(args, context)).getCount();
-    //     }
+
+        throw new Error("Method not implemented.");
+    }
 
     //     // Presentations
 
@@ -467,7 +377,7 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
     //         return qb;
     //     }
 
-    //     async dataStoreORMGetVerifiablePresentations(
+    //     async dataStoreORMDrizzleGetVerifiablePresentations(
     //         args: FindArgs<TPresentationColumns>,
     //         context: AuthorizedDIDContext,
     //     ): Promise<Array<UniqueVerifiablePresentation>> {
@@ -480,7 +390,7 @@ export class DataStoreDrizzleORM implements IAgentPlugin {
     //         }));
     //     }
 
-    //     async dataStoreORMGetVerifiablePresentationsCount(
+    //     async dataStoreORMDrizzleGetVerifiablePresentationsCount(
     //         args: FindArgs<TPresentationColumns>,
     //         context: AuthorizedDIDContext,
     //     ): Promise<number> {

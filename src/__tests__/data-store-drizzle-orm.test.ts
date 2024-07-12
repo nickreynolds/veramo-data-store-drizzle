@@ -25,6 +25,7 @@ import postgres from 'postgres'
 import * as schema from "../drizzle/schema";
 import { DataStoreDrizzleORM } from "../dataStoreDrizzleORM";
 import { DataStoreDrizzle } from "../dataStoreDrizzle";
+import { asc, gt, gte } from "drizzle-orm";
 
 
 
@@ -40,7 +41,7 @@ const vc1: VerifiableCredential = {
     ],
     type: ["VerifiableCredential", "PublicProfile"],
     issuer: { id: did1 },
-    issuanceDate: new Date().toISOString(),
+    issuanceDate: "2024-07-01T17:32:07.647Z",
     id: "vc123",
     credentialSubject: {
         id: did2,
@@ -63,7 +64,7 @@ const vc2: VerifiableCredential = {
     ],
     type: ["VerifiableCredential", "PublicProfile"],
     issuer: { id: did1 },
-    issuanceDate: new Date().toISOString(),
+    issuanceDate: "2024-07-03T14:40:36.357Z",
     id: "vc1234vvvUUUUUUU",
     credentialSubject: {
         id: did3,
@@ -87,7 +88,7 @@ const vc3: VerifiableCredential = {
     ],
     type: ["VerifiableCredential", "PublicProfile"],
     issuer: { id: did1 },
-    issuanceDate: new Date().toISOString(),
+    issuanceDate: "2024-07-03T22:13:29.771Z",
     id: "vc1234vvvUUUUUUU777",
     credentialSubject: {
         id: did3,
@@ -111,7 +112,7 @@ const vc4: VerifiableCredential = {
     ],
     type: ["VerifiableCredential", "Fakeout"],
     issuer: { id: did2 },
-    issuanceDate: new Date().toISOString(),
+    issuanceDate: "2024-09-03T22:13:29.771Z",
     id: "vc1234vvvUUUUUUU777",
     credentialSubject: {
         id: did1,
@@ -211,16 +212,13 @@ describe("@veramo/data-store-drizzle queries", () => {
     }
 
     beforeAll(async () => {
-        console.log("before all?")
         await db.delete(claims);
         await db.delete(credentials);
         await db.delete(messages);
         await db.delete(identifiers);
-        console.log("success deleting")
     });
 
     afterAll(async () => {
-        console.log("after all?")
         await db.delete(claims);
         await db.delete(credentials);
         await db.delete(messages);
@@ -254,15 +252,14 @@ describe("@veramo/data-store-drizzle queries", () => {
 
     test("can get verifiable credentials by claims", async () => {
         const agent = makeAgent();
-        const foundCredentials = await agent.dataStoreORMGetVerifiableCredentialsByClaims({
+        const foundCredentials = await agent.dataStoreORMDrizzleGetVerifiableCredentialsByClaims({
             where: (claims: typeof schema.claims, { eq }: any) => eq(claims.issuerDid, did1)
         });
-        console.log("found credentials: ", foundCredentials)
 
         expect(foundCredentials.length).toEqual(2);
     })
 
-    test("can save and get credential 3", async () => {
+    test("can save and get credential 4", async () => {
         const agent = makeAgent();
         await agent.dataStoreSaveVerifiableCredential({
             verifiableCredential: vc4,
@@ -276,18 +273,55 @@ describe("@veramo/data-store-drizzle queries", () => {
 
     test("can get verifiable credentials by claims", async () => {
         const agent = makeAgent();
-        const foundCredentials = await agent.dataStoreORMGetVerifiableCredentialsByClaims({
+        const foundCredentials = await agent.dataStoreORMDrizzleGetVerifiableCredentialsByClaims({
             where: (claims: typeof schema.claims, { eq }: any) => eq(claims.issuerDid, did1)
         });
-        console.log("found credentials: ", foundCredentials)
 
         expect(foundCredentials.length).toEqual(2);
 
-        const foundCredentials2 = await agent.dataStoreORMGetVerifiableCredentialsByClaims({
+        const foundCredentials2 = await agent.dataStoreORMDrizzleGetVerifiableCredentialsByClaims({
             where: (claims: typeof schema.claims, { eq }: any) => eq(claims.issuerDid, did2)
         });
-        console.log("found credentials 2: ", foundCredentials2)
 
         expect(foundCredentials2.length).toEqual(1);
+    })
+
+    test("can get verifiable credential by issuer", async () => {
+        const agent = makeAgent();
+        const allCredentials = await agent.dataStoreORMDrizzleGetVerifiableCredentials({
+        });
+        const foundCredentials = await agent.dataStoreORMDrizzleGetVerifiableCredentials({
+            where: (credentials: typeof schema.credentials, { eq }: any) => eq(credentials.issuerDid, did1)
+        });
+
+        expect(allCredentials.length).toEqual(3);
+        expect(foundCredentials.length).toEqual(2);
+    })
+
+    test("can get verifiable credential with pagination", async () => {
+        const agent = makeAgent();
+        let cursor: undefined | any = undefined
+        const firstCredentials = await agent.dataStoreORMDrizzleGetVerifiableCredentials({
+            limit: 1,
+            orderBy: (credentials: typeof schema.credentials, { asc }: any) => asc(credentials.issuanceDate),
+            where: (credentials: typeof schema.credentials, { lt }: any) => cursor ? lt(credentials.issuanceDate, new Date(cursor)) : undefined
+        });
+
+        expect(firstCredentials.length).toEqual(1);
+        expect(firstCredentials[0].verifiableCredential.issuer.id).toEqual(did1);
+        expect(firstCredentials[0].verifiableCredential.issuanceDate).toEqual(vc1.issuanceDate)
+
+        cursor = firstCredentials[0].verifiableCredential.issuanceDate
+
+        const secondCredentials = await agent.dataStoreORMDrizzleGetVerifiableCredentials({
+            limit: 1,
+            orderBy: (credentials: typeof schema.credentials, { asc }: any) => asc(credentials.issuanceDate),
+            where: (credentials: typeof schema.credentials, { gt }: any) => cursor ? gt(credentials.issuanceDate, new Date(cursor)) : undefined
+        });
+
+        expect(secondCredentials.length).toEqual(1);
+        expect(secondCredentials[0].verifiableCredential.issuer.id).toEqual(did1);
+        expect(secondCredentials[0].verifiableCredential.issuanceDate).toEqual(vc2.issuanceDate)
+
     })
 });
