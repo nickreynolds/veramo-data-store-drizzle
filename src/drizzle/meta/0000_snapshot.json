@@ -1,0 +1,145 @@
+{
+  "id": "3f5e4166-e960-4464-ada2-6f20ab6f14bf",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.credentials": {
+      "name": "credentials",
+      "schema": "",
+      "columns": {
+        "hash": {
+          "name": "hash",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "raw": {
+          "name": "raw",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.credentials_to_messages": {
+      "name": "credentials_to_messages",
+      "schema": "",
+      "columns": {
+        "message_id": {
+          "name": "message_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "credential_hash": {
+          "name": "credential_hash",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "IDX_indexIdHash": {
+          "name": "IDX_indexIdHash",
+          "columns": [
+            {
+              "expression": "message_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "credential_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "credentials_to_messages_message_id_messages_id_fk": {
+          "name": "credentials_to_messages_message_id_messages_id_fk",
+          "tableFrom": "credentials_to_messages",
+          "tableTo": "messages",
+          "columnsFrom": [
+            "message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "credentials_to_messages_credential_hash_credentials_hash_fk": {
+          "name": "credentials_to_messages_credential_hash_credentials_hash_fk",
+          "tableFrom": "credentials_to_messages",
+          "tableTo": "credentials",
+          "columnsFrom": [
+            "credential_hash"
+          ],
+          "columnsTo": [
+            "hash"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "PK_primaryKeyIdHash": {
+          "name": "PK_primaryKeyIdHash",
+          "columns": [
+            "message_id",
+            "credential_hash"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.messages": {
+      "name": "messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "raw": {
+          "name": "raw",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
