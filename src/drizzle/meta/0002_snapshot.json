@@ -1,0 +1,964 @@
+{
+  "id": "37e307d0-d08e-4bfd-bff1-6830cb0b82e8",
+  "prevId": "05a3621d-8bc5-4163-93d2-09099b640073",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.claims": {
+      "name": "claims",
+      "schema": "",
+      "columns": {
+        "hash": {
+          "name": "hash",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "issuanceDate": {
+          "name": "issuanceDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expirationDate": {
+          "name": "expirationDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "context": {
+          "name": "context",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "credentialType": {
+          "name": "credentialType",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "isObj": {
+          "name": "isObj",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "issuerDid": {
+          "name": "issuerDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subjectDid": {
+          "name": "subjectDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "credentialHash": {
+          "name": "credentialHash",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "witnessIndex": {
+          "name": "witnessIndex",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "claims_issuerDid_identifiers_did_fk": {
+          "name": "claims_issuerDid_identifiers_did_fk",
+          "tableFrom": "claims",
+          "tableTo": "identifiers",
+          "columnsFrom": [
+            "issuerDid"
+          ],
+          "columnsTo": [
+            "did"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "claims_subjectDid_identifiers_did_fk": {
+          "name": "claims_subjectDid_identifiers_did_fk",
+          "tableFrom": "claims",
+          "tableTo": "identifiers",
+          "columnsFrom": [
+            "subjectDid"
+          ],
+          "columnsTo": [
+            "did"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "claims_credentialHash_credentials_hash_fk": {
+          "name": "claims_credentialHash_credentials_hash_fk",
+          "tableFrom": "claims",
+          "tableTo": "credentials",
+          "columnsFrom": [
+            "credentialHash"
+          ],
+          "columnsTo": [
+            "hash"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.credentials": {
+      "name": "credentials",
+      "schema": "",
+      "columns": {
+        "hash": {
+          "name": "hash",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "raw": {
+          "name": "raw",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "issuanceDate": {
+          "name": "issuanceDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expirationDate": {
+          "name": "expirationDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "context": {
+          "name": "context",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "issuerDid": {
+          "name": "issuerDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subjectDid": {
+          "name": "subjectDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "witnessIndex": {
+          "name": "witnessIndex",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "credentials_issuerDid_identifiers_did_fk": {
+          "name": "credentials_issuerDid_identifiers_did_fk",
+          "tableFrom": "credentials",
+          "tableTo": "identifiers",
+          "columnsFrom": [
+            "issuerDid"
+          ],
+          "columnsTo": [
+            "did"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "credentials_subjectDid_identifiers_did_fk": {
+          "name": "credentials_subjectDid_identifiers_did_fk",
+          "tableFrom": "credentials",
+          "tableTo": "identifiers",
+          "columnsFrom": [
+            "subjectDid"
+          ],
+          "columnsTo": [
+            "did"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.credentials_to_messages": {
+      "name": "credentials_to_messages",
+      "schema": "",
+      "columns": {
+        "message_id": {
+          "name": "message_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "credential_hash": {
+          "name": "credential_hash",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "IDX_indexIdHash": {
+          "name": "IDX_indexIdHash",
+          "columns": [
+            {
+              "expression": "message_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "credential_hash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "credentials_to_messages_message_id_messages_id_fk": {
+          "name": "credentials_to_messages_message_id_messages_id_fk",
+          "tableFrom": "credentials_to_messages",
+          "tableTo": "messages",
+          "columnsFrom": [
+            "message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "credentials_to_messages_credential_hash_credentials_hash_fk": {
+          "name": "credentials_to_messages_credential_hash_credentials_hash_fk",
+          "tableFrom": "credentials_to_messages",
+          "tableTo": "credentials",
+          "columnsFrom": [
+            "credential_hash"
+          ],
+          "columnsTo": [
+            "hash"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "PK_primaryKeyIdHash": {
+          "name": "PK_primaryKeyIdHash",
+          "columns": [
+            "message_id",
+            "credential_hash"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.identifiers": {
+      "name": "identifiers",
+      "schema": "",
+      "columns": {
+        "did": {
+          "name": "did",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "alias": {
+          "name": "alias",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "saveDate": {
+          "name": "saveDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updateDate": {
+          "name": "updateDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "controllerKeyId": {
+          "name": "controllerKeyId",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "IDX_6098cca69c838d91e55ef32fe1": {
+          "name": "IDX_6098cca69c838d91e55ef32fe1",
+          "columns": [
+            {
+              "expression": "provider",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "alias",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.keys": {
+      "name": "keys",
+      "schema": "",
+      "columns": {
+        "kid": {
+          "name": "kid",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "kms": {
+          "name": "kms",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "publicKeyHex": {
+          "name": "publicKeyHex",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meta": {
+          "name": "meta",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "identifierDid": {
+          "name": "identifierDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.keyvaluestore": {
+      "name": "keyvaluestore",
+      "schema": "",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "IDX_f4824d8a354cbf404f1cbebe02": {
+          "name": "IDX_f4824d8a354cbf404f1cbebe02",
+          "columns": [
+            {
+              "expression": "key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.messages": {
+      "name": "messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "saveDate": {
+          "name": "saveDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updateDate": {
+          "name": "updateDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "threadId": {
+          "name": "threadId",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw": {
+          "name": "raw",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "replyTo": {
+          "name": "replyTo",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "replyUrl": {
+          "name": "replyUrl",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metaData": {
+          "name": "metaData",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fromDid": {
+          "name": "fromDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "toDid": {
+          "name": "toDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "messages_fromDid_identifiers_did_fk": {
+          "name": "messages_fromDid_identifiers_did_fk",
+          "tableFrom": "messages",
+          "tableTo": "identifiers",
+          "columnsFrom": [
+            "fromDid"
+          ],
+          "columnsTo": [
+            "did"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "messages_toDid_identifiers_did_fk": {
+          "name": "messages_toDid_identifiers_did_fk",
+          "tableFrom": "messages",
+          "tableTo": "identifiers",
+          "columnsFrom": [
+            "toDid"
+          ],
+          "columnsTo": [
+            "did"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.messages_to_presentations": {
+      "name": "messages_to_presentations",
+      "schema": "",
+      "columns": {
+        "messageId": {
+          "name": "messageId",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "presentationHash": {
+          "name": "presentationHash",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "IDX_9dc4cc025ec7163ec5ca919d14": {
+          "name": "IDX_9dc4cc025ec7163ec5ca919d14",
+          "columns": [
+            {
+              "expression": "messageId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "presentationHash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "messages_to_presentations_messageId_messages_id_fk": {
+          "name": "messages_to_presentations_messageId_messages_id_fk",
+          "tableFrom": "messages_to_presentations",
+          "tableTo": "messages",
+          "columnsFrom": [
+            "messageId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "messages_to_presentations_presentationHash_presentations_hash_fk": {
+          "name": "messages_to_presentations_presentationHash_presentations_hash_fk",
+          "tableFrom": "messages_to_presentations",
+          "tableTo": "presentations",
+          "columnsFrom": [
+            "presentationHash"
+          ],
+          "columnsTo": [
+            "hash"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "PK_9dc4cc025ec7163ec5ca919d140": {
+          "name": "PK_9dc4cc025ec7163ec5ca919d140",
+          "columns": [
+            "messageId",
+            "presentationHash"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.presentations": {
+      "name": "presentations",
+      "schema": "",
+      "columns": {
+        "hash": {
+          "name": "hash",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "raw": {
+          "name": "raw",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "issuanceDate": {
+          "name": "issuanceDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expirationDate": {
+          "name": "expirationDate",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "context": {
+          "name": "context",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "holderDid": {
+          "name": "holderDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "presentations_holderDid_identifiers_did_fk": {
+          "name": "presentations_holderDid_identifiers_did_fk",
+          "tableFrom": "presentations",
+          "tableTo": "identifiers",
+          "columnsFrom": [
+            "holderDid"
+          ],
+          "columnsTo": [
+            "did"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.presentations_to_credentials": {
+      "name": "presentations_to_credentials",
+      "schema": "",
+      "columns": {
+        "presentationHash": {
+          "name": "presentationHash",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "credentialHash": {
+          "name": "credentialHash",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "IDX_32d9cee791ee1139f29fd94b5c": {
+          "name": "IDX_32d9cee791ee1139f29fd94b5c",
+          "columns": [
+            {
+              "expression": "presentationHash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "credentialHash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "presentations_to_credentials_presentationHash_presentations_hash_fk": {
+          "name": "presentations_to_credentials_presentationHash_presentations_hash_fk",
+          "tableFrom": "presentations_to_credentials",
+          "tableTo": "presentations",
+          "columnsFrom": [
+            "presentationHash"
+          ],
+          "columnsTo": [
+            "hash"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "presentations_to_credentials_credentialHash_credentials_hash_fk": {
+          "name": "presentations_to_credentials_credentialHash_credentials_hash_fk",
+          "tableFrom": "presentations_to_credentials",
+          "tableTo": "credentials",
+          "columnsFrom": [
+            "credentialHash"
+          ],
+          "columnsTo": [
+            "hash"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "PK_32d9cee791ee1139f29fd94b5c4": {
+          "name": "PK_32d9cee791ee1139f29fd94b5c4",
+          "columns": [
+            "presentationHash",
+            "credentialHash"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.presentation_to_verifier_identifier": {
+      "name": "presentation_to_verifier_identifier",
+      "schema": "",
+      "columns": {
+        "presentationHash": {
+          "name": "presentationHash",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "identifierDid": {
+          "name": "identifierDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "IDX_c3b760612b992bc75511d74f6a": {
+          "name": "IDX_c3b760612b992bc75511d74f6a",
+          "columns": [
+            {
+              "expression": "presentationHash",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "identifierDid",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "presentation_to_verifier_identifier_presentationHash_presentations_hash_fk": {
+          "name": "presentation_to_verifier_identifier_presentationHash_presentations_hash_fk",
+          "tableFrom": "presentation_to_verifier_identifier",
+          "tableTo": "presentations",
+          "columnsFrom": [
+            "presentationHash"
+          ],
+          "columnsTo": [
+            "hash"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "presentation_to_verifier_identifier_identifierDid_identifiers_did_fk": {
+          "name": "presentation_to_verifier_identifier_identifierDid_identifiers_did_fk",
+          "tableFrom": "presentation_to_verifier_identifier",
+          "tableTo": "identifiers",
+          "columnsFrom": [
+            "identifierDid"
+          ],
+          "columnsTo": [
+            "did"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "PK_c3b760612b992bc75511d74f6a9": {
+          "name": "PK_c3b760612b992bc75511d74f6a9",
+          "columns": [
+            "presentationHash",
+            "identifierDid"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.private_keys": {
+      "name": "private_keys",
+      "schema": "",
+      "columns": {
+        "alias": {
+          "name": "alias",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "privateKeyHex": {
+          "name": "privateKeyHex",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.services": {
+      "name": "services",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "serviceEndpoint": {
+          "name": "serviceEndpoint",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "identifierDid": {
+          "name": "identifierDid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

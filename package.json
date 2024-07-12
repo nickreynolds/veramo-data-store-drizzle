@@ -2,6 +2,10 @@
 	"dependencies": {
 		"@types/jest": "^29.5.12",
 		"@types/pg": "^8.11.6",
+		"@veramo/core": "^6.0.0",
+		"@veramo/core-types": "^6.0.0",
+		"@veramo/did-manager": "^6.0.0",
+		"@veramo/utils": "^6.0.0",
 		"dotenv": "^16.4.5",
 		"drizzle-orm": "^0.32.0",
 		"jest": "^29.7.0",
@@ -14,10 +18,11 @@
 	},
 	"devDependencies": {
 		"@types/node": "^20.14.10",
+		"cross-env": "^7.0.3",
 		"drizzle-kit": "^0.23.0"
 	},
 	"scripts": {
-		"test": "jest",
+		"test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --experimental-import-meta-resolve\" jest --runInBand",
 		"migrate": "tsx ./src/scripts/migrate.ts",
 		"saveGet": "tsx ./src/scripts/saveAndGetMessage.ts"
 	},

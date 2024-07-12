@@ -24,6 +24,8 @@ function createRandomString(length: number) {
     return result;
 }
 
+
+
 const credentialHash = createRandomString(10)
 const credentialHash2 = createRandomString(10)
 const messageId = createRandomString(11)

@@ -8,6 +8,20 @@
       "when": 1720739584696,
       "tag": "0000_first_william_stryker",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1720758334983,
+      "tag": "0001_tense_micromacro",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1720761630931,
+      "tag": "0002_lethal_blizzard",
+      "breakpoints": true
     }
   ]
 }
