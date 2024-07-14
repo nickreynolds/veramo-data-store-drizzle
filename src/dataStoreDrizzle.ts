@@ -24,8 +24,10 @@ import {
 import {
     claims,
     credentials,
+    credentialsToMessages,
     identifiers,
     messages,
+    messagesToPresentations,
     presentations,
 } from "./drizzle/schema";
 
@@ -206,37 +208,31 @@ export class DataStoreDrizzle implements IAgentPlugin {
     }
 
     async dataStoreGetMessage(args: IDataStoreGetMessageArgs): Promise<IMessage> {
-        console.log("dataStoreGet.")
-        const m = await this.db.query.messages.findFirst({
-            where: (message, { eq }) => eq(message.id, args.id),
-        });
-        if (!m) throw new Error("not_found: Message not found");
 
-        console.log("dataStoreGet 2. args.id: ", args.id)
-        // this.db.query.
-        const m1 = await this.db.query.credentialsToMessages.findMany({
-            where: (credentialsToMessages, { eq }) => eq(credentialsToMessages.messageId, args.id),
-            orderBy: (desc(drizzleSchema.credentialsToMessages.messageId)),
-            with: {
-                credential: true,
-            },
-        });
-        if (!m1 || m1.length === 0) throw new Error("not_found: Message not found");
+        const result = await this.db.select().from(messages)
+            .leftJoin(drizzleSchema.credentialsToMessages, eq(messages.id, credentialsToMessages.messageId))
+            .leftJoin(credentials, eq(credentials.hash, credentialsToMessages.credentialHash))
+            .leftJoin(drizzleSchema.messagesToPresentations, eq(messages.id, messagesToPresentations.messageId))
+            .leftJoin(presentations, eq(presentations.hash, messagesToPresentations.presentationHash))
+            .where(eq(messages.id, args.id))
 
-        const messageCredentials = m1.map((m) => m.credential)
+        if (!result || result.length === 0) throw new Error("not_found: Message not found");
 
-        const m2 = await this.db.query.messagesToPresentations.findMany({
-            where: (messagesToPresentations, { eq }) => eq(messagesToPresentations.messageId, args.id),
-            with: {
-                presentation: true,
-            },
-        });
-        if (!m2 || m2.length === 0) throw new Error("not_found: Message not found");
+        const message: typeof messages.$inferSelect = result[0].messages
+        const messageCredentials: typeof credentials.$inferSelect[] = result.reduce((acc: typeof credentials.$inferSelect[], row) => {
+            if (row.credentials && !acc.some((cred) => cred.hash === row.credentials?.hash)) {
+                acc.push(row.credentials)
+            }
+            return acc
+        }, [])
+        const messagePresentations: typeof presentations.$inferSelect[] = result.reduce((acc: typeof presentations.$inferSelect[], row) => {
+            if (row.presentations && !acc.some((cred) => cred.hash === row.presentations?.hash)) {
+                acc.push(row.presentations)
+            }
+            return acc
+        }, [])
 
-        const messagePresentations = m2.map((m) => m.presentation)
-        const message: IMessage = createMessage(m, messageCredentials, messagePresentations);
-
-        return message
+        return createMessage(message, messageCredentials, messagePresentations);
     }
 
     async dataStoreDeleteMessage(
