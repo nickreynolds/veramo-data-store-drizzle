@@ -102,7 +102,6 @@ export const createCredentialAndClaimsInsertObjects = (
     cred: typeof credentials.$inferInsert;
     credClaims: (typeof claims.$inferInsert)[];
 } => {
-    console.log("issuance date passed in", vci.issuanceDate);
     const vc = vci;
     const cred: typeof credentials.$inferInsert = {
         context: asArray(vc["@context"]),

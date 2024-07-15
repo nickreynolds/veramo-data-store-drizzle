@@ -116,8 +116,6 @@ export class DataStoreDrizzle implements IAgentPlugin {
         const messageCreds = [];
         if (args.message.credentials) {
             for (const cred of args.message.credentials) {
-                console.log("cred: ", cred);
-                console.log("entryHash: ", computeEntryHash(cred));
                 const c: typeof credentials.$inferInsert = {
                     hash: computeEntryHash(cred),
                     raw: JSON.stringify(cred),
@@ -174,7 +172,6 @@ export class DataStoreDrizzle implements IAgentPlugin {
             }
         }
 
-        console.log("data store save 1.")
         const didsToInsert = dids.map((did) => {
             return { did: did, saveDate: new Date(), updateDate: new Date() };
         });
@@ -203,7 +200,6 @@ export class DataStoreDrizzle implements IAgentPlugin {
             .values(messageCredentialsPresentation)
             .onConflictDoNothing();
 
-        console.log("data store save end.")
         return args.message.id;
     }
 
@@ -291,7 +287,6 @@ export class DataStoreDrizzle implements IAgentPlugin {
             }
         }
 
-        console.log("entryHash: ", cred.hash);
         await this.db.insert(credentials).values(cred);
         await this.db.insert(claims).values(credClaims);
         return cred.hash;

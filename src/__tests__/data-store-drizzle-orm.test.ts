@@ -324,4 +324,43 @@ describe("@veramo/data-store-drizzle queries", () => {
         expect(secondCredentials[0].verifiableCredential.issuanceDate).toEqual(vc2.issuanceDate)
 
     })
+
+    test("can save and get message with credentials and presentations", async () => {
+        const agent = makeAgent();
+        await agent.dataStoreSaveMessage({ message: m1 });
+        const foundMessage = await agent.dataStoreGetMessage({ id: "m12" });
+        expect(foundMessage).toEqual(m1);
+
+        const foundMessages2 = await agent.dataStoreORMDrizzleGetMessages({ where: (messages: typeof schema.messages, { eq }: any) => eq(messages.id, "m12") });
+
+        expect(foundMessages2.length).toEqual(1);
+        expect(foundMessages2[0].id).toEqual("m12");
+        expect(foundMessages2[0].credentials[0].id).toEqual("vc123");
+
+
+        const foundMessages3 = await agent.dataStoreORMDrizzleGetMessages({ where: (messages: typeof schema.messages, { eq }: any) => eq(messages.fromDid, did1) });
+
+        expect(foundMessages3.length).toEqual(1);
+        expect(foundMessages3[0].id).toEqual("m12");
+        expect(foundMessages3[0].credentials[0].id).toEqual("vc123");
+
+
+        const foundMessages4 = await agent.dataStoreORMDrizzleGetMessages({ where: (messages: typeof schema.messages, { eq }: any) => eq(messages.toDid, did2) });
+
+        expect(foundMessages4.length).toEqual(1);
+        expect(foundMessages4[0].id).toEqual("m12");
+        expect(foundMessages4[0].credentials[0].id).toEqual("vc123");
+
+
+        const foundMessages5 = await agent.dataStoreORMDrizzleGetMessages({ where: (messages: typeof schema.messages, { eq }: any) => eq(messages.fromDid, did2) });
+
+        expect(foundMessages5.length).toEqual(0);
+
+
+        // should this work?
+        // const foundMessages6 = await agent.dataStoreORMDrizzleGetMessages({ where: (credentials: typeof schema.credentials, { eq }: any) => eq(credentials.id, "vc123") });
+
+        // console.log("foundMessages6:", foundMessages6)
+        // expect(foundMessages6.length).toEqual(1);
+    })
 });
